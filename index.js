@@ -2,42 +2,20 @@ const mineflayer = require('mineflayer')
 const express = require('express')
 
 // ================== CONFIG ==================
-const host = 'lapatasmp.aternos.me'   // ← CHANGE THIS TO YOUR EXAROTON IP/DOMAIN
-const port = 20962                    // Usually 25565 on Exaroton
-// const version = '1.21'             // Uncomment and change if your server needs a specific version
+const host = 'lapatasmp.aternos.me'   // ← Change to your Exaroton address (e.g. abc123.exaroton.me)
+const port = 20962                        // ← Change to your current port from Exaroton panel
 // ===========================================
 
 const botNames = [
-  "arjun_plays",
-  "krish_op",
-  "dev_gamer",
-  "ayaan_mc",
-  "vivaan_op",
-  "rishi_plays",
-  "omkar_gaming",
-  "shiv_op",
-  "aditya_mc",
-  "harsh_plays",
-  "veer_gamer",
-  "laksh_op",
-  "dhruv_mc",
-  "samar_plays",
-  "arnav_gamer",
-  "tanay_op",
-  "arush_mc",
-  "neel_plays",
-  "pratham_gamer",
-  "ayush_op",
-  "vihaan_mc",
-  "kush_plays",
-  "rudra_gamer",
-  "yash_op",
-  "manav_mc",
-  "reyaan_plays",
-  "kabir_gamer",
-  "shaurya_op",
-  "krunal_mc",
-  "arin_plays"
+  "dj_indian",
+  "150_rupeya_dega",
+  "bap_ko_mat_sikha-chal"
+]
+
+const afkMessages = [
+  "bro my ping",
+  "afk farming chill",
+  "lagg?"
 ]
 
 const bots = []
@@ -49,61 +27,67 @@ function createBot(username) {
     host: host,
     port: port,
     username: username,
-    // version: version,        // uncomment if needed
-    // auth: 'offline'          // only needed if your server is cracked (most Exaroton AFK farms are)
+    // auth: 'offline'   // ← Uncomment ONLY if your server is in Cracked/Offline mode
   })
 
-  // When the bot spawns in the world
+  // Auto reconnect on disconnect
+  bot.on('end', () => {
+    console.log(`🔌 ${username} disconnected. Reconnecting in 5 seconds...`)
+    setTimeout(() => {
+      createBot(username)   // Restart the same bot
+    }, 5000)
+  })
+
+  bot.on('error', (err) => {
+    console.log(`❌ ${username} error:`, err.message)
+  })
+
   bot.once('spawn', () => {
     console.log(`✅ ${username} joined the server!`)
 
-    // Wait 3 seconds → /register <name>
+    // Wait 3 seconds then login (you said only /login, no register)
     setTimeout(() => {
-      bot.chat(`/register ${username}`)
-      console.log(`📝 ${username} → /register ${username}`)
+      bot.chat(`/login ${username}`)
+      console.log(`🔑 ${username} → /login ${username}`)
 
-      // Wait another 3 seconds → /login <name>
-      setTimeout(() => {
-        bot.chat(`/login ${username}`)
-        console.log(`🔑 ${username} → /login ${username}`)
+      console.log(`🌾 ${username} is now AFK farming!`)
 
-        // Start the AFK chat loop (every 1-2 minutes randomly)
-        console.log(`🌾 ${username} is now AFK farming!`)
-        
-        function sendAfkMessage() {
-          bot.chat("bro why is the server lagging?")
-          console.log(`💬 ${username} sent: im still here and farming while afk`)
+      // Send random message every 1 minute (60 seconds)
+      function sendRandomMessage() {
+        const randomMsg = afkMessages[Math.floor(Math.random() * afkMessages.length)]
+        bot.chat(randomMsg)
+        console.log(`💬 ${username} said: ${randomMsg}`)
 
-          // Random delay between 60 and 120 seconds
-          const randomDelay = 60000 + Math.random() * 60000
-          setTimeout(sendAfkMessage, randomDelay)
-        }
+        setTimeout(sendRandomMessage, 60000)   // exactly 1 minute
+      }
 
-        sendAfkMessage()
+      sendRandomMessage()
 
-      }, 3000)
     }, 3000)
   })
 
-  // Error handling
-  bot.on('kicked', reason => console.log(`❌ ${username} was kicked:`, reason))
-  bot.on('error', err => console.log(`❌ ${username} error:`, err.message))
-  bot.on('end', () => console.log(`🔌 ${username} disconnected`))
+  // Auto respawn if the bot dies
+  bot.on('death', () => {
+    console.log(`💀 ${username} died. Respawning...`)
+    // Mineflayer automatically tries to respawn, but we force it just in case
+    setTimeout(() => {
+      if (bot.dead) bot.respawn()
+    }, 2000)
+  })
 
   return bot
 }
 
-// Create all 30 bots with a small delay so the server doesn't get overwhelmed at once
+// Start bots one by one with delay so server doesn't crash
 async function startAllBots() {
-  console.log('🚀 Starting 30 AFK bots...\n')
-  
+  console.log('🚀 Starting 3 AFK bots one by one...\n')
+
   for (const name of botNames) {
-    const bot = createBot(name)
-    bots.push(bot)
-    await new Promise(resolve => setTimeout(resolve, 1200)) // 1.2 seconds between each bot
+    createBot(name)
+    await new Promise(resolve => setTimeout(resolve, 2000)) // 2 seconds gap between bots
   }
 
-  console.log('🎉 All 30 bots have been launched!')
+  console.log('🎉 All 3 bots launched!')
 }
 
 // ===================== EXPRESS FOR UPTIMEROBOT =====================
@@ -111,17 +95,12 @@ const app = express()
 const PORT = process.env.PORT || 3000
 
 app.get('/', (req, res) => {
-  res.send(`
-    <h1>✅ 30 Minecraft AFK Bots are RUNNING!</h1>
-    <p>Your Exaroton server should now have 30 bots farming for you.</p>
-    <p>They will auto-register, login, and say "im still here and farming while afk" every 1-2 minutes.</p>
-  `)
+  res.send(`<h1>✅ 3 Minecraft AFK Bots are RUNNING!</h1>`)
 })
 
 app.listen(PORT, () => {
   console.log(`🌐 UptimeRobot ping server running on port ${PORT}`)
-  console.log(`   → Set UptimeRobot to ping: http://localhost:${PORT} (or your hosting URL)`)
 })
 
-// ===================== START EVERYTHING =====================
+// ===================== START =====================
 startAllBots()
