@@ -3,7 +3,7 @@ const express = require('express')
 
 // ================== CONFIG ==================
 const host = 'lapatasmp.aternos.me'   // ← CHANGE THIS TO YOUR EXAROTON IP/DOMAIN
-const port = 25565                    // Usually 25565 on Exaroton
+const port = 20962                    // Usually 25565 on Exaroton
 // const version = '1.21'             // Uncomment and change if your server needs a specific version
 // ===========================================
 
