@@ -1,0 +1,13 @@
+{
+  "name": "mc-afk-bots-exaroton",
+  "version": "1.0.0",
+  "description": "30 Mineflayer bots that join your Exaroton server, register/login with AuthMe, and AFK forever while chatting every 1-2 minutes",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "mineflayer": "^4.26.0"
+  }
+}
